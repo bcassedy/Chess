@@ -83,6 +83,86 @@ class SlidingPiece < Piece
 
 end
 
+class SteppingPiece < Piece
+  attr_reader :move_deltas
+
+  def initialize(board, color, pos)
+    super(board, color, pos)
+  end
+
+  def moves
+    moves = []
+    @move_deltas.each do |delta|
+      new_row = @pos[0] + delta[0]
+      new_col = @pos[1] + delta[1]
+      move = [new_row, new_col]
+      if valid?(move) || capture_possible?(move)
+        moves << move
+      end
+    end
+    moves
+  end
+end
+
+class King < SteppingPiece
+
+  def initialize(board, color, pos)
+    super(board, color, pos)
+    @move_deltas = [ [1, 0],
+                   [-1, 0],
+                   [1, 1],
+                   [1, -1],
+                   [-1, -1],
+                   [-1, 1],
+                   [0, 1],
+                   [0, -1] ]
+  end
+
+end
+
+class Knight < SteppingPiece
+
+  def initialize(board, color, pos)
+    super(board, color, pos)
+    @move_deltas = [ [2, 1],
+                   [2, -1],
+                   [-2, 1],
+                   [-2, -1],
+                   [-1, 2],
+                   [-1, -2],
+                   [1, 2],
+                   [1, -2] ]
+  end
+end
+
+class Pawn < SteppingPiece
+
+  def initialize(board, color, pos)
+    super(board, color, pos)
+    color == 'white' ? @move_deltas = [ [-1, 0] ] : @move_deltas = [ [1, 0] ]
+
+    @turn_num = 0
+  end
+
+  def moves
+    moves = []
+    moves += [[2,0], [-2,0]] if @turn_num == 0
+    @move_deltas.each do |delta|
+      new_row = @pos[0] + delta[0]
+      new_col = @pos[1] + delta[1]
+      move = [new_row, new_col]
+      if valid?(move) || capture_possible?(move)
+        moves << move
+      end
+    end
+    moves
+  end
+
+end
+
+
+
+
 class Queen < SlidingPiece
 
   def initialize(board, color, pos)
