@@ -2,6 +2,7 @@ require 'debugger'
 
 class Piece
   attr_accessor :pos, :color
+  attr_reader :display_char
 
   def initialize(board, color, pos)
     @board = board
@@ -13,6 +14,14 @@ class Piece
   def moves
     #returns array of places a piece can move to
     raise NotYetImplemented
+  end
+
+  def move(new_pos)
+    if moves.include?(new_pos)
+      @board[@pos] = nil
+      @pos = new_pos
+      @board[@pos] = self
+    end
   end
 
   def valid?(new_pos)
@@ -78,9 +87,41 @@ class Queen < SlidingPiece
 
   def initialize(board, color, pos)
     super(board, color, pos)
-    @move_dirs = [[1, 0], [-1, 0], [1, 1], [1, -1], [-1, -1], [-1, 1], [0, 1], [0, -1]]
+    @move_dirs = [ [1, 0],
+                   [-1, 0],
+                   [1, 1],
+                   [1, -1],
+                   [-1, -1],
+                   [-1, 1],
+                   [0, 1],
+                   [0, -1] ]
+    @display_char = "Q "
   end
 
+end
+
+class Bishop < SlidingPiece
+
+  def initialize(board, color, pos)
+    super(board, color, pos)
+    @move_dirs = [ [-1, 1],
+                   [1, 1],
+                   [1, -1],
+                   [-1, -1] ]
+    @display_char = "B "
+  end
+end
+
+class Rook < SlidingPiece
+
+  def initialize(board, color, pos)
+    super(board, color, pos)
+    @move_dirs = [ [1, 0],
+                   [0, 1],
+                   [-1, 0],
+                   [0, -1] ]
+    @display_char = "R "
+  end
 end
 
 
@@ -100,10 +141,27 @@ class Board
     @board[row][col] = piece
   end
 
-
   def move!(piece, new_pos)
     self[new_pos] = piece
     piece.pos = new_pos
   end
+
+  def to_s
+    output = " "
+    @board.each do |row|
+      row.each do |space|
+        if space.nil?
+          output += "* "
+        else
+          output += space.display_char
+        end
+      end
+      output += "\n "
+    end
+    output
+  end
+
+
+
 
 end
