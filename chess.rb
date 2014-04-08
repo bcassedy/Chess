@@ -43,10 +43,18 @@ class Piece
     @board[move].color != color
   end
 
+  def deltas
+    self.class::DELTAS
+  end
+
+  def display_char
+    self.class::DISPLAY_CHAR
+  end
+
 end
 
 class SlidingPiece < Piece
-  attr_reader :move_dirs
+  attr_reader :board
 
   def initialize(board, color, pos)
     super(board, color, pos)
@@ -55,7 +63,7 @@ class SlidingPiece < Piece
 
   def moves
     moves = []
-    @move_dirs.each do |dir|
+    self.class::MOVE_DELTAS.each do |dir|
       moves += moves_in_one_dir(dir)
     end
     moves
@@ -63,28 +71,37 @@ class SlidingPiece < Piece
 
   private
   def moves_in_one_dir(dir)
-    moves = []
-    new_row = @pos[0] + dir[0]
-    new_col = @pos[1] + dir[1]
-    loop do
-      move = [new_row, new_col]
-      if valid?(move)
-        moves << move
-      elsif capture_possible?(move)
-        moves << move
-        return moves
-      else
-        return moves
-      end
-      new_row = new_row + dir[0]
-      new_col = new_col + dir[1]
+    valid_moves = []
+    current = apply_delta(@pos, dir)
+    until blocked?(current)
+      valid_moves << current
+      current = apply_delta(current, dir)
     end
+    debugger
+    unless valid?(current) && @board[current].nil?
+      valid_moves << current if capture_possible?(current)
+    end
+    valid_moves
   end
+
+  def apply_delta(pos, delta)
+    new_row = pos[0] + delta[0]
+    new_col = pos[1] + delta[1]
+    [new_row, new_col]
+  end
+
+  def blocked?(pos)
+    return true unless valid?(pos)
+    unless @board[pos].nil?
+      return true if capture_possible?(pos)
+    end
+    false
+  end
+
 
 end
 
 class SteppingPiece < Piece
-  attr_reader :move_deltas
 
   def initialize(board, color, pos)
     super(board, color, pos)
@@ -92,7 +109,7 @@ class SteppingPiece < Piece
 
   def moves
     moves = []
-    @move_deltas.each do |delta|
+    self.class::MOVE_DELTAS.each do |delta|
       new_row = @pos[0] + delta[0]
       new_col = @pos[1] + delta[1]
       move = [new_row, new_col]
@@ -105,26 +122,21 @@ class SteppingPiece < Piece
 end
 
 class King < SteppingPiece
-
-  def initialize(board, color, pos)
-    super(board, color, pos)
-    @move_deltas = [ [1, 0],
-                   [-1, 0],
-                   [1, 1],
-                   [1, -1],
-                   [-1, -1],
-                   [-1, 1],
-                   [0, 1],
-                   [0, -1] ]
-  end
+  # MOVE_DELTAS =
+  DISPLAY_CHAR = "K "
+  MOVE_DELTAS = [ [1, 0],
+                  [-1, 0],
+                  [1, 1],
+                  [1, -1],
+                  [-1, -1],
+                  [-1, 1],
+                  [0, 1],
+                  [0, -1] ]
 
 end
 
 class Knight < SteppingPiece
-
-  def initialize(board, color, pos)
-    super(board, color, pos)
-    @move_deltas = [ [2, 1],
+  MOVE_DELTAS = [ [2, 1],
                    [2, -1],
                    [-2, 1],
                    [-2, -1],
@@ -132,22 +144,37 @@ class Knight < SteppingPiece
                    [-1, -2],
                    [1, 2],
                    [1, -2] ]
-  end
+  DISPLAY_CHAR = "N "
 end
 
 class Pawn < SteppingPiece
 
+  MOVE_DELTAS = {
+    :white => [[-1, 0]],
+    :black => [[1, 0]]
+  }
+  DISPLAY_CHAR = "P "
+
   def initialize(board, color, pos)
     super(board, color, pos)
-    color == 'white' ? @move_deltas = [ [-1, 0] ] : @move_deltas = [ [1, 0] ]
-
-    @turn_num = 0
+    @moves_num = 0
   end
+
+  def diagonal_captures
+    diagonal_moves = []
+    row_delta = self.class::MOVE_DELTAS[0][0]
+    diagonal_moves << [row_delta, 1] if capture_possible?([row_delta, 1])
+    diagonal_moves << [row_delta, -1] if capture_possible?([row_delta, -1])
+    diagonal_moves
+  end
+
+
 
   def moves
     moves = []
-    moves += [[2,0], [-2,0]] if @turn_num == 0
-    @move_deltas.each do |delta|
+    possible_moves = self.class::MOVE_DELTAS + diagonal_captures
+    possible_moves += [[2,0], [-2,0]] if @turn_num == 0
+    possible_moves.each do |delta|
       new_row = @pos[0] + delta[0]
       new_col = @pos[1] + delta[1]
       move = [new_row, new_col]
@@ -158,16 +185,17 @@ class Pawn < SteppingPiece
     moves
   end
 
+  def deltas
+    MOVE_DELTAS[color]
+  end
 end
 
 
 
 
 class Queen < SlidingPiece
-
-  def initialize(board, color, pos)
-    super(board, color, pos)
-    @move_dirs = [ [1, 0],
+  DISPLAY_CHAR = "Q "
+  MOVE_DELTAS = [  [1, 0],
                    [-1, 0],
                    [1, 1],
                    [1, -1],
@@ -175,33 +203,25 @@ class Queen < SlidingPiece
                    [-1, 1],
                    [0, 1],
                    [0, -1] ]
-    @display_char = "Q "
-  end
 
 end
 
 class Bishop < SlidingPiece
-
-  def initialize(board, color, pos)
-    super(board, color, pos)
-    @move_dirs = [ [-1, 1],
+  DISPLAY_CHAR = "B "
+  MOVE_DELTAS = [  [-1, 1],
                    [1, 1],
                    [1, -1],
                    [-1, -1] ]
-    @display_char = "B "
-  end
+
 end
 
 class Rook < SlidingPiece
-
-  def initialize(board, color, pos)
-    super(board, color, pos)
-    @move_dirs = [ [1, 0],
+  DISPLAY_CHAR = "R "
+  MOVE_DELTAS = [  [1, 0],
                    [0, 1],
                    [-1, 0],
                    [0, -1] ]
-    @display_char = "R "
-  end
+
 end
 
 
