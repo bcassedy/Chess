@@ -17,11 +17,15 @@ class Piece
   end
 
   def move(new_pos)
-    if moves.include?(new_pos)
+    if valid_moves(moves).include?(new_pos)
       @board[@pos] = nil
       @pos = new_pos
       @board[@pos] = self
     end
+  end
+
+  def valid_moves(moves)
+     moves.select { |move| !move_into_check?(self, move) }
   end
 
   def valid?(new_pos)
@@ -51,8 +55,13 @@ class Piece
     self.class::DISPLAY_CHAR
   end
 
-  def move_into_check?
-
+  def move_into_check?(copy_of_board, end_pos)
+    board_copy = @board.deep_dup
+    piece_copy = self.class.new(board_copy, self.color, self.pos)
+    board_copy[piece_copy.pos] = piece_copy
+    board_copy.move(piece_copy.pos, end_pos)
+    board_copy.in_check?(piece_copy.color)
+    false
   end
 
 end
@@ -120,7 +129,7 @@ class SteppingPiece < Piece
         moves << move
       end
     end
-    moves
+    valid_moves(moves)
   end
 end
 
@@ -197,7 +206,7 @@ class Pawn < SteppingPiece
         moves << move
       end
     end
-    moves
+    valid_moves(moves)
   end
 
   def deltas
@@ -244,6 +253,12 @@ class Board
 
   def initialize(board = nil)
     @board = board || Array.new(8) { Array.new(8) }
+    if board.nil?
+      setup_board
+    end
+  end
+
+  def setup_board
     pieces = [Rook, Knight, Bishop, King, Queen, Bishop, Knight, Rook]
     pieces.each_with_index do |piece, col|
       self[[0, col]] = piece.new(self, :black, [0, col])
@@ -255,12 +270,19 @@ class Board
     end
   end
 
-  def dup
-    board_copy = []
+  def deep_dup
+    arr = Array.new(8) { Array.new(8) }
+    board_copy = Board.new(arr)
     @board.each do |row|
-      board_copy << row.dup
+      new_row = []
+      row.each do |space|
+        if !space.nil?
+          board_copy[space.pos] = space.class
+                        .new(board_copy, space.color, space.pos)
+        end
+      end
     end
-    Board.new(board_copy)
+    board_copy
   end
 
   def locate_king(color)
@@ -286,6 +308,7 @@ class Board
     piece = self[start_pos]
     raise "No piece present at start position" if piece.nil?
     raise "Not a valid move for this piece" unless piece.moves.include?(end_pos)
+    raise "Move would put you in check" unless piece.valid_moves(end_pos)
     move!(piece, end_pos)
   end
 
@@ -321,4 +344,16 @@ class Board
     end
     false
   end
+
+  def checkmate?(color)
+    checkmate = true
+    @board.each do |row|
+      row.each do |space|
+        next if space.nil?
+        return false unless space.valid_moves(space.moves).empty?
+      end
+    end
+    checkmate
+  end
+
 end
