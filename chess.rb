@@ -17,13 +17,13 @@ class Piece
     raise NotYetImplemented
   end
 
-  def move(new_pos)
-    if valid_moves(moves).include?(new_pos)
-      @board[@pos] = nil
-      @pos = new_pos
-      @board[@pos] = self
-    end
-  end
+# def move(new_pos)
+#     if valid_moves(moves).include?(new_pos)
+#       @board[@pos] = nil
+#       @pos = new_pos
+#       @board[@pos] = self
+#     end
+#   end
 
   def valid_moves(moves)
      moves.reject { |move| move_into_check?(move) }
@@ -41,7 +41,7 @@ class Piece
   end
 
   def capture_possible?(move)
-    #check that the space is on the board
+    #check that the space is on the board first
     if move.any? { |coord| coord < 0 || coord > 7 } || @board[move].nil?
       return false
     end
@@ -85,16 +85,16 @@ class SlidingPiece < Piece
 
   private
   def moves_in_one_dir(dir)
-    valid_moves = []
+    valid_move_list = []
     current = apply_delta(@pos, dir)
     until blocked?(current)
-      valid_moves << current
+      valid_move_list << current
       current = apply_delta(current, dir)
     end
     unless valid?(current) && @board[current].nil?
-      valid_moves << current if capture_possible?(current)
+      valid_move_list << current if capture_possible?(current)
     end
-    valid_moves
+    valid_move_list
   end
 
   def apply_delta(pos, delta)
@@ -278,7 +278,7 @@ class Board
   end
 
   def setup_board
-    pieces = [Rook, Knight, Bishop, King, Queen, Bishop, Knight, Rook]
+    pieces = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
     pieces.each_with_index do |piece, col|
       self[[0, col]] = piece.new(self, :black, [0, col])
       self[[7, col]] = piece.new(self, :white, [7, col])
@@ -368,7 +368,7 @@ class Board
     @board.each do |row|
       row.each do |space|
         next if space.nil? || space.color == color
-        # return true if space.moves.any? { |move| move == king_pos }
+        return true if space.moves.any? { |move| move == king_pos }
       end
     end
     false
@@ -379,7 +379,7 @@ class Board
       row.each do |space|
         next if space.nil?
         next if space.color != color
-        return false if space.valid_moves(space.moves).empty?
+        return false unless space.valid_moves(space.moves).empty?
       end
     end
     true
@@ -389,6 +389,10 @@ end
 
 class Game
   attr_reader :board
+  TURNS = {
+    :white => :black,
+    :black => :white
+  }
   COLORS = { :white => "White",
              :black => "Black"
            }
@@ -401,14 +405,17 @@ class Game
 
   def play
     turn = :white
-    puts @board
     puts "White goes first."
-    begin
-      start_pos, end_pos = get_move(turn)
-      raise "Not your piece!" if @board[start_pos].color != turn
-      @board.move(start_pos, end_pos)
-    rescue
-      retry
+    until @board.checkmate?(turn) do
+      begin
+        puts @board
+        start_pos, end_pos = get_move(turn)
+        raise "Not your piece!" if @board[start_pos].color != turn
+        @board.move(start_pos, end_pos)
+      rescue
+        retry
+      end
+      turn = TURNS[turn]
     end
   end
 
