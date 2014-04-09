@@ -1,4 +1,4 @@
-require_relative '../pieces.rb'
+require_relative 'piece'
 
 class SlidingPiece < Piece
   attr_reader :board

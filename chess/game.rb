@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'colorize'
+require_relative 'board'
 
 class Game
   attr_reader :board
@@ -86,6 +87,11 @@ class HumanPlayer
     col, row = chess_pos.split('')
     [X_TO_ROW[row.to_i * -1], ALPHA_TO_COORD[col]]
   end
+end
 
-
+if __FILE__ == $PROGRAM_NAME
+  p1 = HumanPlayer.new
+  p2 = HumanPlayer.new
+  g = Game.new(p1, p2)
+  g.play
 end

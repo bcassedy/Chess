@@ -1,3 +1,5 @@
+require_relative 'pieces'
+
 class Board
 
   def initialize(board = nil)
