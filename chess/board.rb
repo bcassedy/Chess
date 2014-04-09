@@ -80,22 +80,22 @@ class Board
     output = "   a b c d e f g h\n "
     cur_color = :green
     @board.each_with_index do |row, row_index|
-      #lookup x coord of given row_index
+      #lookup x coord of given row_index. [row,col] is actually [y,x]
       cur_color = next_color[cur_color]
-      output += "#{8 - row_index} "
+      output << "#{8 - row_index} "
       row.each do |space|
         if space.nil?
-          output += "  ".colorize(:background => cur_color)
+          output << "  ".colorize(:background => cur_color)
         else
-          output += space.display_char.colorize(:color => space.color,
+          output << space.display_char.colorize(:color => space.color,
           :background => cur_color)
         end
         cur_color = next_color[cur_color]
       end
-      output += "#{8 - row_index}"
-      output += "\n "
+      output << "#{8 - row_index}"
+      output << "\n "
     end
-    output += "  a b c d e f g h\n "
+    output << "  a b c d e f g h\n "
     output
   end
 

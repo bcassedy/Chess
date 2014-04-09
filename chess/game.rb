@@ -74,7 +74,8 @@ class HumanPlayer
 
   def play_turn(color)
     puts "#{color} pick a move e.x. f2,f4 :"
-    start_pos, end_pos = gets.chomp.split(',')
+    start_pos, end_pos = gets.chomp.downcase.split(',')
+    check_input(start_pos, end_pos)
     start_pos = translate_coordinate(start_pos)
     raise "No piece present at start position" if @board[start_pos].nil?
     raise "Not your piece!" if @board[start_pos].color != color
@@ -87,6 +88,14 @@ class HumanPlayer
     col, row = chess_pos.split('')
     [X_TO_ROW[row.to_i * -1], ALPHA_TO_COORD[col]]
   end
+
+  def check_input(start_pos, end_pos)
+    regex = /[a-h][1-8]/
+    unless start_pos =~ regex && end_pos =~ regex
+      raise "Invalid input! Input must be in the form f2,f3"
+    end
+  end
+
 end
 
 if __FILE__ == $PROGRAM_NAME
