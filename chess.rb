@@ -26,7 +26,7 @@ class Piece
   end
 
   def valid_moves(moves)
-     moves.select { |move| move_into_check?(self, move) != true }
+     moves.reject { |move| move_into_check?(move) }
   end
 
   def valid?(new_pos)
@@ -56,15 +56,13 @@ class Piece
     self.class::DISPLAY_CHAR[self.color]
   end
 
-  def move_into_check?(copy_of_board, end_pos)
+  def move_into_check?(pos)
     board_copy = @board.deep_dup
     piece_copy = self.class.new(board_copy, self.color, self.pos)
     piece_copy.moves_num = self.moves_num
-    debugger
     board_copy[piece_copy.pos] = piece_copy
-    board_copy.move!(piece_copy, end_pos)
+    board_copy.move!(piece_copy, pos)
     board_copy.in_check?(piece_copy.color)
-    false
   end
 
 end
@@ -124,6 +122,7 @@ class SteppingPiece < Piece
 
   def moves
     moves = []
+
     self.class::MOVE_DELTAS.each do |delta|
       new_row = @pos[0] + delta[0]
       new_col = @pos[1] + delta[1]
@@ -132,7 +131,7 @@ class SteppingPiece < Piece
         moves << move
       end
     end
-    valid_moves(moves)
+    moves
   end
 end
 
@@ -331,7 +330,8 @@ class Board
     piece = self[start_pos]
     raise "No piece present at start position" if piece.nil?
     raise "Not a valid move for this piece" unless piece.moves.include?(end_pos)
-    raise "Move would put you in check" unless piece.valid_moves(end_pos)
+    raise "Move would put you in check" unless piece
+                .valid_moves(piece.moves).include?(end_pos)
     move!(piece, end_pos)
   end
 
@@ -363,12 +363,12 @@ class Board
   end
 
   def in_check?(color)
+    king_pos = locate_king(color)
+
     @board.each do |row|
       row.each do |space|
-        next if space.nil?
-        if space.color != color
-          return true if space.moves.any? { |move| move == locate_king(color) }
-        end
+        next if space.nil? || space.color == color
+        # return true if space.moves.any? { |move| move == king_pos }
       end
     end
     false
