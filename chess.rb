@@ -2,7 +2,7 @@
 require 'debugger'
 
 class Piece
-  attr_accessor :pos, :color
+  attr_accessor :pos, :color, :moves_num
   attr_reader :display_char
 
   def initialize(board, color, pos)
@@ -59,6 +59,8 @@ class Piece
   def move_into_check?(copy_of_board, end_pos)
     board_copy = @board.deep_dup
     piece_copy = self.class.new(board_copy, self.color, self.pos)
+    piece_copy.moves_num = self.moves_num
+    debugger
     board_copy[piece_copy.pos] = piece_copy
     board_copy.move!(piece_copy, end_pos)
     board_copy.in_check?(piece_copy.color)
@@ -167,7 +169,6 @@ class Knight < SteppingPiece
 end
 
 class Pawn < SteppingPiece
-  attr_reader :moves_num
 
   MOVE_DELTAS = {
     :white => [[-1, 0]],
@@ -216,7 +217,7 @@ class Pawn < SteppingPiece
         moves << move
       end
     end
-    valid_moves(moves)
+    moves
   end
 
   def deltas
@@ -285,7 +286,7 @@ class Board
     end
     @board[1].each_index do |col|
       self[[1, col]] = Pawn.new(self, :black, [1, col])
-      self[[6, col]] = Pawn.new(self, :white, [7, col])
+      self[[6, col]] = Pawn.new(self, :white, [6, col])
     end
   end
 
@@ -308,6 +309,7 @@ class Board
     @board.each do |row|
       row.each do |space|
         next if space.nil?
+        next if space.color != color
         return space.pos if space.is_a?(King)
       end
     end
@@ -324,6 +326,8 @@ class Board
   end
 
   def move(start_pos, end_pos)
+    raise "Position off board" if out_of_bounds?(start_pos) ||
+                                  out_of_bounds?(end_pos)
     piece = self[start_pos]
     raise "No piece present at start position" if piece.nil?
     raise "Not a valid move for this piece" unless piece.moves.include?(end_pos)
@@ -337,9 +341,15 @@ class Board
     piece.pos = new_pos
   end
 
+  def out_of_bounds?(pos)
+    return true if pos.any? { |coord| coord > 7 || coord < 0 }
+    false
+  end
+
   def to_s
-    output = " "
-    @board.each do |row|
+    output = "   0 1 2 3 4 5 6 7\n "
+    @board.each_with_index do |row, row_index|
+      output += "#{row_index} "
       row.each do |space|
         if space.nil?
           output += "* "
@@ -377,6 +387,43 @@ class Board
 
 end
 
+class Game
+  attr_reader :board
+  COLORS = { :white => "White",
+             :black => "Black"
+           }
+
+  def initialize(player1, player2)
+    @player1 = player1
+    @player2 = player2
+    @board = Board.new
+  end
+
+  def play
+    turn = :white
+    puts @board
+    puts "White goes first."
+    begin
+      start_pos, end_pos = get_move(turn)
+      raise "Not your piece!" if @board[start_pos].color != turn
+      @board.move(start_pos, end_pos)
+    rescue
+      retry
+    end
+  end
+
+  def get_move(turn)
+    puts "#{COLORS[turn]} pick a move e.x. 03,05 :"
+    start_pos, end_pos = gets.chomp.split(',')
+    start_pos = start_pos.split('').map(&:to_i)
+    end_pos = end_pos.split('').map(&:to_i)
+    [start_pos, end_pos]
+  end
+
+
+end
+
 if __FILE__ == $PROGRAM_NAME
-  p Board.new
+  g = Game.new('a', 'b')
+  g.play
 end
