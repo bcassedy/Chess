@@ -3,11 +3,6 @@ require_relative 'piece'
 class SlidingPiece < Piece
   attr_reader :board
 
-  def initialize(board, color, pos)
-    super(board, color, pos)
-    @move_dirs = []
-  end
-
   def moves
     moves = []
     self.class::MOVE_DELTAS.each do |dir|

@@ -1,13 +1,11 @@
 class Piece
   attr_accessor :pos, :color, :moves_num
-  attr_reader :display_char
 
   def initialize(board, color, pos)
     @board = board
     @color = color
     @pos = pos
   end
-
 
   def moves
     #returns array of places a piece can move to
@@ -17,6 +15,12 @@ class Piece
   def valid_moves(moves)
      moves.reject { |move| move_into_check?(move) }
   end
+
+  def display_char
+    self.class::DISPLAY_CHAR.colorize(:color => self.color)
+  end
+
+  private
 
   def valid?(new_pos)
     #desired space is on the board and not occupied
@@ -39,10 +43,6 @@ class Piece
 
   def deltas
     self.class::DELTAS
-  end
-
-  def display_char
-    self.class::DISPLAY_CHAR.colorize(:color => self.color)
   end
 
   def move_into_check?(pos)

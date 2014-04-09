@@ -9,18 +9,6 @@ class Board
     end
   end
 
-  def setup_board
-    pieces = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
-    pieces.each_with_index do |piece, col|
-      self[[0, col]] = piece.new(self, :black, [0, col])
-      self[[7, col]] = piece.new(self, :white, [7, col])
-    end
-    @board[1].each_index do |col|
-      self[[1, col]] = Pawn.new(self, :black, [1, col])
-      self[[6, col]] = Pawn.new(self, :white, [6, col])
-    end
-  end
-
   def deep_dup
     arr = Array.new(8) { Array.new(8) }
     board_copy = Board.new(arr)
@@ -34,14 +22,6 @@ class Board
       end
     end
     board_copy
-  end
-
-  def locate_king(color)
-    @board.flatten.each do |space|
-      next if space.nil?
-      next if space.color != color
-      return space.pos if space.is_a?(King)
-    end
   end
 
   def [](pos)
@@ -70,13 +50,41 @@ class Board
     piece.pos = new_pos
   end
 
-  def out_of_bounds?(pos)
-    return true if pos.any? { |coord| coord > 7 || coord < 0 }
+  def in_check?(color)
+    king_pos = locate_king(color)
+
+    @board.flatten.each do |space|
+      next if space.nil? || space.color == color
+      return true if space.moves.any? { |move| move == king_pos }
+    end
     false
   end
 
+  def checkmate?(color)
+    @board.flatten.each do |space|
+      next if space.nil?
+      next if space.color != color
+      return false unless space.valid_moves(space.moves).empty?
+    end
+    true
+  end
+
+  private
+
+  def setup_board
+    pieces = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
+    pieces.each_with_index do |piece, col|
+      self[[0, col]] = piece.new(self, :black, [0, col])
+      self[[7, col]] = piece.new(self, :white, [7, col])
+    end
+    @board[1].each_index do |col|
+      self[[1, col]] = Pawn.new(self, :black, [1, col])
+      self[[6, col]] = Pawn.new(self, :white, [6, col])
+    end
+  end
+
   def to_s
-    next_color = { :green => :white, :white => :green }
+    next_color = { :green => :red, :red => :green }
     output = "   a b c d e f g h\n "
     cur_color = :green
     @board.each_with_index do |row, row_index|
@@ -99,23 +107,17 @@ class Board
     output
   end
 
-  def in_check?(color)
-    king_pos = locate_king(color)
-
-    @board.flatten.each do |space|
-      next if space.nil? || space.color == color
-      return true if space.moves.any? { |move| move == king_pos }
-    end
-    false
-  end
-
-  def checkmate?(color)
+  def locate_king(color)
     @board.flatten.each do |space|
       next if space.nil?
       next if space.color != color
-      return false unless space.valid_moves(space.moves).empty?
+      return space.pos if space.is_a?(King)
     end
-    true
+  end
+
+  def out_of_bounds?(pos)
+    return true if pos.any? { |coord| coord > 7 || coord < 0 }
+    false
   end
 
 end
