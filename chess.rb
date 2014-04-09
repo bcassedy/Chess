@@ -25,7 +25,7 @@ class Piece
   end
 
   def valid_moves(moves)
-     moves.select { |move| !move_into_check?(self, move) }
+     moves.select { |move| move_into_check?(self, move) != true }
   end
 
   def valid?(new_pos)
@@ -59,7 +59,7 @@ class Piece
     board_copy = @board.deep_dup
     piece_copy = self.class.new(board_copy, self.color, self.pos)
     board_copy[piece_copy.pos] = piece_copy
-    board_copy.move(piece_copy.pos, end_pos)
+    board_copy.move!(piece_copy, end_pos)
     board_copy.in_check?(piece_copy.color)
     false
   end
@@ -346,14 +346,14 @@ class Board
   end
 
   def checkmate?(color)
-    checkmate = true
     @board.each do |row|
       row.each do |space|
         next if space.nil?
-        return false unless space.valid_moves(space.moves).empty?
+        next if space.color != color
+        return false if space.valid_moves(space.moves).empty?
       end
     end
-    checkmate
+    true
   end
 
 end
