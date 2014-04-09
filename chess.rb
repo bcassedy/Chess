@@ -51,6 +51,10 @@ class Piece
     self.class::DISPLAY_CHAR
   end
 
+  def move_into_check?
+
+  end
+
 end
 
 class SlidingPiece < Piece
@@ -238,8 +242,8 @@ end
 
 class Board
 
-  def initialize
-    @board = Array.new(8) { Array.new(8) }
+  def initialize(board = nil)
+    @board = board || Array.new(8) { Array.new(8) }
     pieces = [Rook, Knight, Bishop, King, Queen, Bishop, Knight, Rook]
     pieces.each_with_index do |piece, col|
       self[[0, col]] = piece.new(self, :black, [0, col])
@@ -249,6 +253,14 @@ class Board
       self[[1, col]] = Pawn.new(self, :black, [1, col])
       self[[6, col]] = Pawn.new(self, :white, [7, col])
     end
+  end
+
+  def dup
+    board_copy = []
+    @board.each do |row|
+      board_copy << row.dup
+    end
+    Board.new(board_copy)
   end
 
   def locate_king(color)
