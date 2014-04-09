@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'debugger'
 
 class Piece
@@ -52,7 +53,7 @@ class Piece
   end
 
   def display_char
-    self.class::DISPLAY_CHAR
+    self.class::DISPLAY_CHAR[self.color]
   end
 
   def move_into_check?(copy_of_board, end_pos)
@@ -135,7 +136,10 @@ end
 
 class King < SteppingPiece
   # MOVE_DELTAS =
-  DISPLAY_CHAR = "K "
+  DISPLAY_CHAR = {
+    :white => "\u2654 ",
+    :black => "\u265A "
+  }
   MOVE_DELTAS = [ [1, 0],
                   [-1, 0],
                   [1, 1],
@@ -156,7 +160,10 @@ class Knight < SteppingPiece
                    [-1, -2],
                    [1, 2],
                    [1, -2] ]
-  DISPLAY_CHAR = "N "
+  DISPLAY_CHAR = {
+    :white => "\u2658 ",
+    :black => "\u265E "
+  }
 end
 
 class Pawn < SteppingPiece
@@ -166,7 +173,10 @@ class Pawn < SteppingPiece
     :white => [[-1, 0]],
     :black => [[1, 0]]
   }
-  DISPLAY_CHAR = "P "
+  DISPLAY_CHAR = {
+    :white => "\u2659 ",
+    :black => "\u265F "
+  }
 
   def initialize(board, color, pos)
     super(board, color, pos)
@@ -218,7 +228,10 @@ end
 
 
 class Queen < SlidingPiece
-  DISPLAY_CHAR = "Q "
+  DISPLAY_CHAR = {
+    :white => "\u2655 ",
+    :black => "\u265B "
+  }
   MOVE_DELTAS = [  [1, 0],
                    [-1, 0],
                    [1, 1],
@@ -231,7 +244,10 @@ class Queen < SlidingPiece
 end
 
 class Bishop < SlidingPiece
-  DISPLAY_CHAR = "B "
+  DISPLAY_CHAR = {
+    :white => "\u2657 ",
+    :black => "\u265D "
+  }
   MOVE_DELTAS = [  [-1, 1],
                    [1, 1],
                    [1, -1],
@@ -240,7 +256,10 @@ class Bishop < SlidingPiece
 end
 
 class Rook < SlidingPiece
-  DISPLAY_CHAR = "R "
+  DISPLAY_CHAR = {
+    :white => "\u2656 ",
+    :black => "\u265C "
+  }
   MOVE_DELTAS = [  [1, 0],
                    [0, 1],
                    [-1, 0],
@@ -356,4 +375,8 @@ class Board
     true
   end
 
+end
+
+if __FILE__ == $PROGRAM_NAME
+  p Board.new
 end
