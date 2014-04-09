@@ -1,3 +1,5 @@
+require_relative 'stepping_piece'
+
 class Pawn < SteppingPiece
 
   MOVE_DELTAS = {

@@ -1,3 +1,5 @@
+require_relative '../pieces.rb'
+
 class SteppingPiece < Piece
 
   def initialize(board, color, pos)

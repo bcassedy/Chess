@@ -1,3 +1,4 @@
+require_relative 'stepping_piece'
 class King < SteppingPiece
   # MOVE_DELTAS =
   DISPLAY_CHAR = "\u265A "

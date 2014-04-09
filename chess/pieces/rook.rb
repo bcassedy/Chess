@@ -1,3 +1,5 @@
+require_relative 'sliding_piece'
+
 class Rook < SlidingPiece
   DISPLAY_CHAR = "\u265C "
   MOVE_DELTAS = [  [1, 0],
