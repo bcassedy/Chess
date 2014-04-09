@@ -37,7 +37,7 @@ class Piece
 
   def capture_possible?(move)
     #check that the space is on the board
-    if move.any? { |coord| coord < 0 || coord > 7 }
+    if move.any? { |coord| coord < 0 || coord > 7 } || @board[move].nil?
       return false
     end
     @board[move].color != color
@@ -77,7 +77,6 @@ class SlidingPiece < Piece
       valid_moves << current
       current = apply_delta(current, dir)
     end
-    debugger
     unless valid?(current) && @board[current].nil?
       valid_moves << current if capture_possible?(current)
     end
@@ -148,6 +147,7 @@ class Knight < SteppingPiece
 end
 
 class Pawn < SteppingPiece
+  attr_reader :moves_num
 
   MOVE_DELTAS = {
     :white => [[-1, 0]],
@@ -162,23 +162,34 @@ class Pawn < SteppingPiece
 
   def diagonal_captures
     diagonal_moves = []
-    row_delta = self.class::MOVE_DELTAS[0][0]
-    diagonal_moves << [row_delta, 1] if capture_possible?([row_delta, 1])
-    diagonal_moves << [row_delta, -1] if capture_possible?([row_delta, -1])
+    row_delta = MOVE_DELTAS[@color][0][0]
+    unless @board[[row_delta, 1]].nil?
+      diagonal_moves << [row_delta, 1] if capture_possible?([row_delta, 1])
+    end
+    unless @board[[row_delta, -1]]
+      diagonal_moves << [row_delta, -1] if capture_possible?([row_delta, -1])
+    end
     diagonal_moves
   end
 
-
+  def move(new_pos)
+    if moves.include?(new_pos)
+      @board[@pos] = nil
+      @pos = new_pos
+      @board[@pos] = self
+      @moves_num += 1
+    end
+  end
 
   def moves
     moves = []
-    possible_moves = self.class::MOVE_DELTAS + diagonal_captures
-    possible_moves += [[2,0], [-2,0]] if @turn_num == 0
+    possible_moves = deltas + diagonal_captures
+    possible_moves += [[2,0], [-2,0]] if @moves_num == 0
     possible_moves.each do |delta|
       new_row = @pos[0] + delta[0]
       new_col = @pos[1] + delta[1]
       move = [new_row, new_col]
-      if valid?(move) || capture_possible?(move)
+      if valid?(move) || diagonal_captures.include?(move)
         moves << move
       end
     end
@@ -231,6 +242,15 @@ class Board
     @board = Array.new(8) { Array.new(8) }
   end
 
+  def locate_king(color)
+    @board.each do |row|
+      row.each do |space|
+        next if space.nil?
+        return space.pos if space.is_a?(King)
+      end
+    end
+  end
+
   def [](pos)
     row, col = pos
     @board[row][col]
@@ -261,7 +281,15 @@ class Board
     output
   end
 
-
-
-
+  def in_check?(color)
+    @board.each do |row|
+      row.each do |space|
+        next if space.nil?
+        if space.color != color
+          return true if space.moves.any? { |move| move == locate_king(color) }
+        end
+      end
+    end
+    false
+  end
 end
