@@ -240,6 +240,15 @@ class Board
 
   def initialize
     @board = Array.new(8) { Array.new(8) }
+    pieces = [Rook, Knight, Bishop, King, Queen, Bishop, Knight, Rook]
+    pieces.each_with_index do |piece, col|
+      self[[0, col]] = piece.new(self, :black, [0, col])
+      self[[7, col]] = piece.new(self, :white, [7, col])
+    end
+    @board[1].each_index do |col|
+      self[[1, col]] = Pawn.new(self, :black, [1, col])
+      self[[6, col]] = Pawn.new(self, :white, [7, col])
+    end
   end
 
   def locate_king(color)
@@ -261,7 +270,15 @@ class Board
     @board[row][col] = piece
   end
 
+  def move(start_pos, end_pos)
+    piece = self[start_pos]
+    raise "No piece present at start position" if piece.nil?
+    raise "Not a valid move for this piece" unless piece.moves.include?(end_pos)
+    move!(piece, end_pos)
+  end
+
   def move!(piece, new_pos)
+    self[piece.pos] = nil
     self[new_pos] = piece
     piece.pos = new_pos
   end
