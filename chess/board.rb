@@ -78,7 +78,7 @@ class Board
   def to_s
     next_color = { :green => :white, :white => :green }
     output = "   a b c d e f g h\n "
-    cur_color = :white
+    cur_color = :green
     @board.each_with_index do |row, row_index|
       #lookup x coord of given row_index
       cur_color = next_color[cur_color]
