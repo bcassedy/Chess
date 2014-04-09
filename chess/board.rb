@@ -37,12 +37,10 @@ class Board
   end
 
   def locate_king(color)
-    @board.each do |row|
-      row.each do |space|
-        next if space.nil?
-        next if space.color != color
-        return space.pos if space.is_a?(King)
-      end
+    @board.flatten.each do |space|
+      next if space.nil?
+      next if space.color != color
+      return space.pos if space.is_a?(King)
     end
   end
 
@@ -104,22 +102,18 @@ class Board
   def in_check?(color)
     king_pos = locate_king(color)
 
-    @board.each do |row|
-      row.each do |space|
-        next if space.nil? || space.color == color
-        return true if space.moves.any? { |move| move == king_pos }
-      end
+    @board.flatten.each do |space|
+      next if space.nil? || space.color == color
+      return true if space.moves.any? { |move| move == king_pos }
     end
     false
   end
 
   def checkmate?(color)
-    @board.each do |row|
-      row.each do |space|
-        next if space.nil?
-        next if space.color != color
-        return false unless space.valid_moves(space.moves).empty?
-      end
+    @board.flatten.each do |space|
+      next if space.nil?
+      next if space.color != color
+      return false unless space.valid_moves(space.moves).empty?
     end
     true
   end
