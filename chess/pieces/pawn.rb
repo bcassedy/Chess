@@ -14,17 +14,6 @@ class Pawn < SteppingPiece
     @moves_num = 0
   end
 
-  def diagonal_captures
-    diagonal_moves = []
-    row_delta = MOVE_DELTAS[@color][0][0]
-    diagonal_moves << [row_delta + self.pos[0], self.pos[1] + 1]
-    diagonal_moves << [row_delta + self.pos[0], self.pos[1] - 1]
-
-    diagonal_moves.select do |move|
-      !(@board[move].nil?) && capture_possible?(move)
-    end
-  end
-
   def move(new_pos)
     if moves.include?(new_pos)
       @board[@pos] = nil
@@ -51,5 +40,18 @@ class Pawn < SteppingPiece
 
   def deltas
     MOVE_DELTAS[color]
+  end
+
+  private
+
+  def diagonal_captures
+    diagonal_moves = []
+    row_delta = MOVE_DELTAS[@color][0][0]
+    diagonal_moves << [row_delta + self.pos[0], self.pos[1] + 1]
+    diagonal_moves << [row_delta + self.pos[0], self.pos[1] - 1]
+
+    diagonal_moves.select do |move|
+      !(@board[move].nil?) && capture_possible?(move)
+    end
   end
 end
