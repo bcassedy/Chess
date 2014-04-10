@@ -48,6 +48,7 @@ class Board
     self[piece.pos] = nil
     self[new_pos] = piece
     piece.pos = new_pos
+    piece.moves_num = 1
   end
 
   def in_check?(color)

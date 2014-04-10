@@ -38,7 +38,7 @@ class Piece
     if move.any? { |coord| coord < 0 || coord > 7 } || @board[move].nil?
       return false
     end
-    @board[move].color != color
+    @board[move].color != @color
   end
 
   def deltas
