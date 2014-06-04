@@ -9,7 +9,6 @@ class Piece
   end
 
   def moves
-    #returns array of places a piece can move to
     raise NotYetImplemented
   end
 
@@ -24,7 +23,6 @@ class Piece
   private
 
   def valid?(new_pos)
-    #desired space is on the board and not occupied
     if new_pos.any? { |coord| coord < 0 || coord > 7 }
       return false
     end
@@ -35,7 +33,6 @@ class Piece
   end
 
   def capture_possible?(move)
-    #check that the space is on the board first
     if move.any? { |coord| coord < 0 || coord > 7 } || @board[move].nil?
       return false
     end
